@@ -107,7 +107,7 @@ There are several implementations some common file storages (including S3/Digita
 
 ## Storages
 
-The Supplement ships with the following storage implementations:
+Entrepôt ships with the following storage implementations:
 
 - [Disk](#Disk)
 - [S3](#S3)
@@ -158,7 +158,7 @@ Uses Elixir's [StringIO](https://hexdocs.pm/elixir/StringIO.html) module to stor
 
 ## uploads
 
-Supplement implements the `Entrepot.Upload` protocol for the following modules:
+There are implementation of the `Entrepot.Upload` protocol for the following modules:
 
 - [URI](#URI)
 - [Plug.Upload](#plugupload)
@@ -189,7 +189,7 @@ This supports multi-part form submissions handled by [Plug](https://hexdocs.pm/p
 
 ## [EntrepôtEcto](https://github.com/bonfire-networks/entrepot_ecto)
 
-An external library which provides `Entrepot.Ecto.Type` for Ecto schema fields to easily handle persisting Locator data in your repository.
+There is an external library (because it needs Ecto as a dependency) which provides `Entrepot.Ecto.Type` for Ecto schema fields to easily handle persisting Locator data in your repository.
 
 ---
 
