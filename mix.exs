@@ -5,13 +5,13 @@ defmodule Entrepot.MixProject do
     [
       app: :entrepot,
       description: "Minimal, composable file upload, storage, and streamed data migrations for Elixir apps",
-      version: "0.10.0",
+      version: "0.11.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: dialyzer(),
       elixirc_paths: elixirc_paths(Mix.env()),
-      name: "Entrepot",
+      name: "Entrepôt",
       source_url: "https://github.com/bonfire-networks/entrepot",
       package: package()
     ]
