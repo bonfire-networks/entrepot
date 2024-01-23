@@ -1,6 +1,6 @@
-defmodule Capsule do
-  alias Capsule.Locator
-  alias Capsule.Errors.InvalidStorage
+defmodule Entrepot do
+  alias Entrepot.Locator
+  alias Entrepot.Errors.InvalidStorage
 
   def copy(locator, dest_storage, opts \\ []) 
   def copy(%Locator{storage: source_storage}, dest_storage, _opts) when source_storage==dest_storage do
@@ -15,7 +15,7 @@ defmodule Capsule do
     |> case do
           {:ok, id} ->
             locator =
-              Capsule.add_metadata(
+              Entrepot.add_metadata(
                 Locator.new!(id: id, storage: dest_storage),
                 %{copied_from: source_storage}
               )

@@ -1,5 +1,5 @@
-defmodule Capsule.Uploader do
-  alias Capsule.Locator
+defmodule Entrepot.Uploader do
+  alias Entrepot.Locator
 
   @type storage :: atom()
   @type option :: {atom(), any()}
@@ -10,11 +10,11 @@ defmodule Capsule.Uploader do
 
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
-      @behaviour Capsule.Uploader
+      @behaviour Entrepot.Uploader
 
       @storages Keyword.fetch!(opts, :storages)
 
-      @impl Capsule.Uploader
+      @impl Entrepot.Uploader
       def store(upload, storage_key, opts \\ []) do
         storage = fetch_storage!(upload, storage_key)
 
@@ -23,7 +23,7 @@ defmodule Capsule.Uploader do
         |> case do
           {:ok, id} ->
             locator =
-              Capsule.add_metadata(
+              Entrepot.add_metadata(
                 Locator.new!(id: id, storage: storage),
                 build_metadata(upload, storage_key, opts)
               )
@@ -35,10 +35,10 @@ defmodule Capsule.Uploader do
         end
       end
 
-      @impl Capsule.Uploader
+      @impl Entrepot.Uploader
       def build_metadata(_, _, _), do: []
 
-      @impl Capsule.Uploader
+      @impl Entrepot.Uploader
       def build_options(_, _, instance_opts), do: instance_opts
 
       defp fetch_storage!(upload, storage) do

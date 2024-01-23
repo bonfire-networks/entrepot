@@ -1,4 +1,4 @@
-defprotocol Capsule.Upload do
+defprotocol Entrepot.Upload do
   @spec contents(struct()) :: {:ok, iodata()} | {:error, String.t()}
   def contents(upload)
 
@@ -9,11 +9,11 @@ defprotocol Capsule.Upload do
   def path(upload)
 end 
 
-defimpl Capsule.Upload, for: Capsule.Locator do
-  def contents(locator), do: Capsule.storage!(locator).read(locator.id)
+defimpl Entrepot.Upload, for: Entrepot.Locator do
+  def contents(locator), do: Entrepot.storage!(locator).read(locator.id)
 
   def name(%{metadata: %{name: name}}), do: name
   def name(%{id: id}), do: id
 
-  def path(%{} = locator), do: Capsule.storage!(locator).path(locator)
+  def path(%{} = locator), do: Entrepot.storage!(locator).path(locator)
 end

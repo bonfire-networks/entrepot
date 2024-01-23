@@ -1,5 +1,5 @@
-defmodule Capsule.Storage do
-  alias Capsule.Upload
+defmodule Entrepot.Storage do
+  alias Entrepot.Upload
 
   @type option :: {atom(), any()}
   @type locator_id :: String.t()

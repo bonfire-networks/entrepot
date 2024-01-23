@@ -1,8 +1,8 @@
-defmodule Capsule.UploadTest do
+defmodule Entrepot.UploadTest do
   use ExUnit.Case
-  doctest Capsule
+  doctest Entrepot
 
-  alias Capsule.{Upload, Locator}
+  alias Entrepot.{Upload, Locator}
 
   describe "Locator" do
     test "name returns name metadata if present" do

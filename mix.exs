@@ -1,18 +1,18 @@
-defmodule Capsule.MixProject do
+defmodule Entrepot.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :capsule,
-      description: "Uploaded file management for Elixir",
+      app: :entrepot,
+      description: "Minimal, composable file upload, storage, and streamed data migrations for Elixir apps",
       version: "0.10.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: dialyzer(),
       elixirc_paths: elixirc_paths(Mix.env()),
-      name: "Capsule",
-      source_url: "https://github.com/elixir-capsule/capsule",
+      name: "Entrepot",
+      source_url: "https://github.com/bonfire-networks/entrepot",
       package: package()
     ]
   end
@@ -27,6 +27,10 @@ defmodule Capsule.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ex_aws, "~> 2.0", optional: true},
+      {:ex_aws_s3, "~> 2.0", optional: true},
+      {:mox, "~> 1.0", only: :test},
+      {:bypass, "~> 2.1", only: :test},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: :dev, runtime: false}
     ]
@@ -44,9 +48,9 @@ defmodule Capsule.MixProject do
 
   defp package do
     [
-      maintainers: ["Thomas Floyd Wright"],
+      maintainers: ["Bonfire Networks"],
       licenses: ["Apache-2.0"],
-      links: %{"GitHub" => "https://github.com/elixir-capsule/capsule"}
+      links: %{"GitHub" => "https://github.com/bonfire-networks/entrepot"}
     ]
   end
 end

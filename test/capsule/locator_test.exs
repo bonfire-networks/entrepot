@@ -1,8 +1,8 @@
-defmodule Capsule.LocatorTest do
+defmodule Entrepot.LocatorTest do
   use ExUnit.Case
-  doctest Capsule
+  doctest Entrepot
 
-  alias Capsule.Locator
+  alias Entrepot.Locator
 
   describe "new/1 with keyword list" do
     test "returns struct" do
@@ -18,7 +18,7 @@ defmodule Capsule.LocatorTest do
 
   describe "new/1 with map with atom storage" do
     test "returns struct" do
-      assert {:ok, %Locator{}} = Locator.new(%{id: "fake", storage: Capsule.Storages.Mock})
+      assert {:ok, %Locator{}} = Locator.new(%{id: "fake", storage: Entrepot.Storages.Mock})
     end
   end
 
@@ -48,7 +48,7 @@ defmodule Capsule.LocatorTest do
 
   describe "new! with nil id" do
     test "raises error" do
-      assert_raise(Capsule.Errors.InvalidLocator, fn ->
+      assert_raise(Entrepot.Errors.InvalidLocator, fn ->
         Locator.new!(%{"id" => nil})
       end)
     end

@@ -1,17 +1,17 @@
-defmodule Capsule.UploaderTest do
+defmodule Entrepot.UploaderTest do
   use ExUnit.Case
-  doctest Capsule
+  doctest Entrepot
 
-  alias Capsule.{Locator, Uploader}
+  alias Entrepot.{Locator, Uploader}
 
   defmodule BasicUploader do
-    use Uploader, storages: [temp: Capsule.Storages.Mock, perm: Capsule.Storages.Mock]
+    use Uploader, storages: [temp: Entrepot.Storages.Mock, perm: Entrepot.Storages.Mock]
   end
 
   defmodule DynamicUploader do
     use Uploader, storages: {__MODULE__, :get_storages, []}
 
-    def get_storages(_), do: [temp: Capsule.Storages.Mock]
+    def get_storages(_), do: [temp: Entrepot.Storages.Mock]
   end
 
   describe "store/2 with basic uploader and valid storage key" do

@@ -1,4 +1,4 @@
-defmodule Capsule.Locator do
+defmodule Entrepot.Locator do
   defstruct [:id, :storage, metadata: %{}]
 
   @type t() :: %__MODULE__{
@@ -10,7 +10,7 @@ defmodule Capsule.Locator do
   def new!(attrs) do
     case new(attrs) do
       {:ok, locator} -> locator
-      {:error, error} -> raise(Capsule.Errors.InvalidLocator, error)
+      {:error, error} -> raise(Entrepot.Errors.InvalidLocator, error)
     end
   end
 

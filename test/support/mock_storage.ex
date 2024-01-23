@@ -1,5 +1,5 @@
-defmodule Capsule.Storages.Mock do
-  alias Capsule.Storage
+defmodule Entrepot.Storages.Mock do
+  alias Entrepot.Storage
 
   @behaviour Storage
 

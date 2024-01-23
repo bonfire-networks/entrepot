@@ -1,17 +1,17 @@
-# Capsule
+# Entrepôt
 
-Upload and store files in Elixir apps with minimal (currently zero) dependencies.
+Minimal, composable file upload, storage, and streamed data migrations for Elixir apps, flexibly and with minimal dependencies.
 
-[![hex package](https://img.shields.io/hexpm/v/capsule.svg)](https://hex.pm/packages/capsule)
-[![CI status](https://github.com/elixir-capsule/capsule/workflows/CI/badge.svg)](https://github.com/elixir-capsule/capsule/actions)
+[![hex package](https://img.shields.io/hexpm/v/entrepot.svg)](https://hex.pm/packages/entrepot)
+[![CI status](https://github.com/bonfire-networks/entrepot/workflows/CI/badge.svg)](https://github.com/bonfire-networks/entrepot/actions)
 
-:warning: Although I have been using it in production for over a year without issue, Capsule is experimental and still in active development. Accepting file uploads introduces specific security vulnerabilities. Use at your own risk.
+:warning: Although it's been used in production for over a year without issue, Entrepôt is experimental and still in active development. Accepting file uploads introduces specific security vulnerabilities. Use at your own risk.
 
 ## Concepts
 
-Capsule intentionally strips file storage logic down to its most composable parts and lets you decide how you want to use them. These components are: [storage](#storage), [upload](#upload), [locator](#locator), and optionally, [uploader](#uploader), which provides a more ergonomic API for the other 3.
+Entrepôt intentionally strips file storage logic down to its most composable parts and lets you decide how you want to use them. These components are: [storage](#storage), [upload](#upload), [locator](#locator), and optionally, [uploader](#uploader), which provides a more ergonomic API for the other 3.
 
-It is intentionally agnostic about versions, transformation, validations, etc. Most of the convenience offered by other libraries around these features comes at the cost of locking in dependence on specific tools and hiding complexity. Capsule puts a premium on simplicity and explicitness.
+It is intentionally agnostic about versions, transformation, validations, etc. Most of the convenience offered by other libraries around these features comes at the cost of locking in dependence on specific tools and hiding complexity. Entrepôt puts a premium on simplicity and explicitness.
 
 So what does it do? Here's a theoretical example of a use case with an Ecto<sup>1</sup> schema, which stores the file retrieved from a URL, along with some additional metadata:
 
@@ -55,7 +55,7 @@ Upload is a [protocol](https://elixir-lang.org/getting-started/protocols.html) c
 * contents
 * name
 
-A storage uses this interface to figure how to extract the file data from a given struct and how to identify it. See `Capsule.Locator` for an example of how this protocol can be implemented.
+A storage uses this interface to figure how to extract the file data from a given struct and how to identify it. See `Entrepot.Locator` for an example of how this protocol can be implemented.
 
 ### Locator
 
@@ -68,11 +68,9 @@ old_file_data = %Locator{id: "/path/to/file.jpg", storage: Disk, metadata: %{}}
 {:ok, new_id} = S3.put(old_file_data)`
 ```
 
-Note: always remember to take care of cleaning up the old file as Capsule *never* automatically removes files:
+Note: always remember to take care of cleaning up the old file as Entrepot *never* automatically removes files:
 
 `Disk.delete(old_file_data.id)`
-
-<sup>2</sup> *As of version 0.6 Capsule all built-in storages and upload protocols except for Locator have been moved to [elixir-capsule/supplement](https://github.com/elixir-capsule/supplement).*
 
 ### Uploader
 
@@ -80,7 +78,7 @@ This helper was added in order to support DRYing up storage access. In most apps
 
 ```
 defmodule AvatarUploader do
-  use Capsule.Uploader, storages: [cache: Disk, store: S3]
+  use Entrepot.Uploader, storages: [cache: Disk, store: S3]
 
   def build_options(upload, :cache, opts) do
     Keyword.put(opts, :prefix, "cache/#{Date.utc_today()}")
@@ -100,16 +98,99 @@ Then you can get the files where they need to be without constructing all the op
 
 Note: as this example demonstrates, the function can receive arbitrary data and use it to customize how it builds the storage options before they are passed on.
 
-## Integrations
 
-Capsule's module design is intended to make it easy to implement your own custom utilities for handling files in the way you need. However, anticipating the most common use cases, it can be augmented with the following add-ons.
+## Built-in Integrations
 
-### [CapsuleEcto](https://github.com/elixir-capsule/capsule_ecto)
+Entrepôt's module design is intended to make it easy to implement your own custom utilities for handling files in the way you need. However, anticipating the most common use cases, that is facilitated with the following optional modules and add-on library.
 
-Provides the `Capsule.Ecto.Type` for Ecto schema fields which handles persisting Locator data in your repository.
+There are several implementations some common file storages (including S3/Digital Ocean) and uploads (including `Plug.Upload`).
 
-### [CapsuleSupplement](https://github.com/elixir-capsule/supplement)
+## Storages
 
-Contains a collection of some common file storages (including S3/Digital Ocean) and uploads (including `Plug.Upload`).
+The Supplement ships with the following storage implementations:
+
+- [Disk](#Disk)
+- [S3](#S3)
+- [RAM](#RAM)
+
+### Disk
+
+This saves uploaded files to a local disk. It is useful for caching uploads while you validate other data, and/or perform some file processing.
+
+#### configuration
+
+- To set the root directory where files will be stored: `Application.put_env(:entrepot, Entrepot.Storages.Disk, root_dir: "tmp")`
+
+#### options
+
+- `prefix`: This should be a valid system path that will be appended to the root. If it does not exist, Disk will create it.
+- `force`: If this option is set to a truthy value, Disk will overwrite any existing file at the derived path. Use with caution!
+
+#### notes
+
+Since it is possible for files with the same name to be uploaded multiple times, Disk needs some additional info to uniquely identify the file. Disk _does not_ overwrite files with the same name by default. To ensure an upload can be stored, the combination of the `Upload.name` and `prefix` should be unique.
+
+### S3
+
+This storage uploads files to [AWS's S3](https://aws.amazon.com/s3/) service. It also works with [Digital Ocean Spaces](https://www.digitalocean.com/products/spaces/).
+
+#### configuration
+
+- To set the bucket where files will be stored: `Application.put_env(:entrepot, Entrepot.Storages.S3, bucket: "whatever")`
+
+#### options
+
+- prefix: A string to prepend to the upload's key
+- s3_options: Keyword list of option that will passed directly to ex_aws_s3
+
+#### dependencies
+
+Some of the implementations might require further dependencies (currently only [S3](#s3)-compatible storage) that you will also need to add to your project's deps
+```
+{:ex_aws, "~> 2.0"}
+{:ex_aws_s3, "~> 2.0"}
+```
+
+### RAM
+
+Uses Elixir's [StringIO](https://hexdocs.pm/elixir/StringIO.html) module to store file contents in memory. Since the "files" are essentially just strings, they will not be persisted and will error if they are read back from a database, for example. However, operations are correspondingly very fast and thus suitable for tests or other temporary file operations.
+
+
+## uploads
+
+Supplement implements the `Entrepot.Upload` protocol for the following modules:
+
+- [URI](#URI)
+- [Plug.Upload](#plugupload)
+
+
+### URI
+
+This is useful for transferring files already hosted elsewhere, for example in cloud storage not controlled by your application, or a [TUS server](https://tus.io/).
+
+You can use it to allow users to post a url string in lieu of downloading and reuploading a file. A Phoenix controller action implementing this feature might look like this:
+
+```
+def attach(conn, %{"attachment" => %{"url" => url}}) when url != "" do
+  URI.parse(url)
+  |> Disk.put(upload)
+
+  # ...redirect, etc
+end
+```
+
+#### notes
+
+This implementation imposes a hard timeout limit of 15 seconds to download the file from the remote location.
+
+### Plug.Upload
+
+This supports multi-part form submissions handled by [Plug](https://hexdocs.pm/plug/Plug.Upload.html#content).
+
+## [EntrepôtEcto](https://github.com/bonfire-networks/entrepot_ecto)
+
+An external library which provides `Entrepot.Ecto.Type` for Ecto schema fields to easily handle persisting Locator data in your repository.
+
+---
 
 That's it! Happy uploading.
