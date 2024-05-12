@@ -14,13 +14,10 @@ defmodule Entrepot do
     |> dest_storage.put(Keyword.put(opts, :name, id))
     |> case do
           {:ok, id} ->
-            locator =
               Entrepot.add_metadata(
                 Locator.new!(id: id, storage: dest_storage),
                 %{copied_from: source_storage}
               )
-
-            {:ok, locator}
 
           error_tuple ->
             error_tuple
@@ -33,8 +30,10 @@ defmodule Entrepot do
   def add_metadata(%Locator{} = locator, data) when is_list(data),
     do: add_metadata(locator, Enum.into(data, %{}))
 
-  def add_metadata(%Locator{} = locator, data),
-    do: %{locator | metadata: locator.metadata |> Map.merge(data)}
+  def add_metadata(%Locator{} = locator, data) when is_map(data),
+    do: {:ok, %{locator | metadata: locator.metadata |> Map.merge(data)}}
+
+  def add_metadata(_locator, {:error, e}), do: {:error, e}
 
   def storage!(%Locator{storage: module_name}) when is_binary(module_name) do
     module_name

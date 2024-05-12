@@ -22,13 +22,10 @@ defmodule Entrepot.Uploader do
         |> storage.put(build_options(upload, storage_key, opts))
         |> case do
           {:ok, id} ->
-            locator =
               Entrepot.add_metadata(
                 Locator.new!(id: id, storage: storage),
                 build_metadata(upload, storage_key, opts)
               )
-
-            {:ok, locator}
 
           error_tuple ->
             error_tuple

@@ -6,7 +6,7 @@ defmodule Entrepot.Storages.Disk do
   @impl Storage
   def put(upload, opts \\ []) do
     with path <- Path.join(opts[:prefix] || "/", opts[:name] || Upload.name(upload)),
-         destination <- path(path, opts),
+         destination <- path(path, opts) || {:error, "File does not exist at #{path}"},
          true <-
            !File.exists?(destination) || opts[:force] || if(opts[:skip_existing], do: {:ok, destination}) ||
              {:error, "File already exists at #{destination}"},
