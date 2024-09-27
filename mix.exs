@@ -4,7 +4,7 @@ defmodule Entrepot.MixProject do
   def project do
     [
       app: :entrepot,
-      description: "Minimal, composable file upload, storage, and streamed data migrations for Elixir apps",
+      description: "Minimal, composable file upload, storage, and streamed data migrations for Elixir apps. Fork of Capsule.",
       version: "0.11.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,

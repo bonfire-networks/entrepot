@@ -193,4 +193,4 @@ There is an external library (because it needs Ecto as a dependency) which provi
 
 ---
 
-That's it! Happy uploading.
+Note: Entrepôt was originally forked from [Capsule](https://github.com/elixir-capsule)
