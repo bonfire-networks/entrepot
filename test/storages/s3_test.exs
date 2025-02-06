@@ -30,9 +30,12 @@ defmodule Entrepot.Storages.S3Test do
 
   describe "put/2 with valid s3 option" do
     test "adds corresponding AWS header to request" do
-      stub(ExAwsMock, :request, fn %{headers: %{"x-amz-acl" => "public-read"}}, _ -> {:ok, nil} end)
+      stub(ExAwsMock, :request, fn %{headers: %{"x-amz-acl" => "public-read"}}, _ ->
+        {:ok, nil}
+      end)
 
-      assert {:ok, _} = S3.put(%MockUpload{}, s3_options: [acl: "public-read"], upload_with: :contents)
+      assert {:ok, _} =
+               S3.put(%MockUpload{}, s3_options: [acl: "public-read"], upload_with: :contents)
     end
   end
 

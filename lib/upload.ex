@@ -38,7 +38,7 @@ defprotocol Entrepot.Upload do
   """
   @spec path(struct()) :: String.t() | nil
   def path(upload)
-end 
+end
 
 defimpl Entrepot.Upload, for: Entrepot.Locator do
   def contents(locator), do: Entrepot.storage!(locator).read(locator.id)

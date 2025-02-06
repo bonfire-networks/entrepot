@@ -41,7 +41,7 @@ defmodule Entrepot.Uploader do
   - A list of options to be used in the storage operation.
   """
   @callback build_options(any(), storage, [option]) :: [option]
-  
+
   @doc """
   Builds metadata for the stored file.
 
@@ -71,10 +71,10 @@ defmodule Entrepot.Uploader do
         |> storage.put(build_options(upload, storage_key, opts))
         |> case do
           {:ok, id} ->
-              Entrepot.add_metadata(
-                Locator.new!(id: id, storage: storage),
-                build_metadata(upload, storage_key, opts)
-              )
+            Entrepot.add_metadata(
+              Locator.new!(id: id, storage: storage),
+              build_metadata(upload, storage_key, opts)
+            )
 
           error_tuple ->
             error_tuple

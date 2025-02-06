@@ -20,10 +20,10 @@ defmodule Entrepot.Storages.S3 do
     default_bucket = Keyword.get(opts, :bucket)
 
     case Client.put_object_copy(
-          Keyword.get(opts, :dest_bucket) || default_bucket, 
-          dest_path, 
-          Keyword.get(opts, :source_bucket) || default_bucket, 
-          source_id
+           Keyword.get(opts, :dest_bucket) || default_bucket,
+           dest_path,
+           Keyword.get(opts, :source_bucket) || default_bucket,
+           source_id
          )
          |> ex_aws_module().request(opts) do
       {:ok, _} -> {:ok, dest_path}
@@ -57,6 +57,7 @@ defmodule Entrepot.Storages.S3 do
   @impl Storage
   def url(path, opts \\ []) do
     opts = config(opts)
+
     case ExAws.Config.new(:s3, opts)
          |> Client.presigned_url(:get, Keyword.fetch!(opts, :bucket), path, opts) do
       {:ok, url} -> {:ok, url}
@@ -66,7 +67,6 @@ defmodule Entrepot.Storages.S3 do
 
   @impl Storage
   def path(_path, _opts \\ []), do: nil
-  
 
   defp do_put(:contents, upload, key, opts) do
     with {:ok, contents} <- Upload.contents(upload) do
@@ -79,18 +79,20 @@ defmodule Entrepot.Storages.S3 do
       |> ex_aws_module().request(opts)
     end
   end
+
   defp do_put(_stream, upload, key, opts) do
     with path when is_binary(path) <- Upload.path(upload) do
       path
       |> Client.Upload.stream_file()
       |> Client.upload(
-        config(opts, :bucket), 
-        key, 
+        config(opts, :bucket),
+        key,
         Keyword.get(opts, :s3_options) || opts
       )
       |> ex_aws_module().request(opts)
-    else nil ->
-      do_put(:contents, upload, key, opts)
+    else
+      nil ->
+        do_put(:contents, upload, key, opts)
     end
   end
 
@@ -98,6 +100,7 @@ defmodule Entrepot.Storages.S3 do
     Application.get_env(:entrepot, __MODULE__, [])
     |> Keyword.merge(opts)
   end
+
   defp config(opts, key) do
     config(opts)
     |> Keyword.fetch!(key)

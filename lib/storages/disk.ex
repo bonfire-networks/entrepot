@@ -8,26 +8,28 @@ defmodule Entrepot.Storages.Disk do
     with path <- Path.join(opts[:prefix] || "/", opts[:name] || Upload.name(upload)),
          destination <- path(path, opts) || {:error, "File does not exist at #{path}"},
          true <-
-           !File.exists?(destination) || opts[:force] || if(opts[:skip_existing], do: {:ok, destination}) ||
+           !File.exists?(destination) || opts[:force] ||
+             if(opts[:skip_existing], do: {:ok, destination}) ||
              {:error, "File already exists at #{destination}"},
          :ok <- do_put(opts[:upload_with], upload, destination) do
-
       {:ok, path}
     end
     |> case do
       {:ok, path} -> {:ok, path}
       {:error, error} -> {:error, "Could not store file: #{error}"}
-      other -> {:error, "Could not store file: #{inspect other}"}
+      other -> {:error, "Could not store file: #{inspect(other)}"}
     end
   end
 
-  defp do_put(_stream, %struct{} = upload, destination) when struct in [File.Stream, Stream, IO.Stream] do
+  defp do_put(_stream, %struct{} = upload, destination)
+       when struct in [File.Stream, Stream, IO.Stream] do
     create_path!(destination)
 
     upload
     |> Stream.into(File.stream!(destination))
     |> Stream.run()
   end
+
   defp do_put(:contents, upload, destination) do
     with {:ok, contents} <- Upload.contents(upload) do
       create_path!(destination)
@@ -35,11 +37,11 @@ defmodule Entrepot.Storages.Disk do
       File.write(destination, contents)
     end
   end
+
   defp do_put(_path, upload, destination) do
     path = Upload.path(upload)
 
     with true <- is_binary(path) and File.exists?(path) do
-
       create_path!(destination)
 
       if path == destination do
@@ -49,10 +51,9 @@ defmodule Entrepot.Storages.Disk do
           :ok
         end
       end
-
-    else 
+    else
       _false ->
-      do_put(:contents, upload, destination)
+        do_put(:contents, upload, destination)
     end
   end
 
@@ -79,7 +80,7 @@ defmodule Entrepot.Storages.Disk do
   end
 
   @impl Storage
-  def stream(path, opts \\ []) do 
+  def stream(path, opts \\ []) do
     path = path(path, opts)
     if File.exists?(path), do: File.stream!(path, [], 512)
   end
@@ -91,8 +92,9 @@ defmodule Entrepot.Storages.Disk do
   def url(path, opts \\ []), do: Path.join("/", path(path, opts))
 
   @impl Storage
-  def path(path, opts \\ [])  
-  def path(path, opts) when is_binary(path) do 
+  def path(path, opts \\ [])
+
+  def path(path, opts) when is_binary(path) do
     opts = config(opts)
     root_dir = Keyword.get(opts, :root_dir)
 
@@ -102,7 +104,8 @@ defmodule Entrepot.Storages.Disk do
       Path.join(root_dir, path)
     end
   end
-  def path(%{} = upload, opts) do 
+
+  def path(%{} = upload, opts) do
     Upload.name(upload)
     |> path(opts)
   end
@@ -111,6 +114,7 @@ defmodule Entrepot.Storages.Disk do
     Application.get_env(:entrepot, __MODULE__, [])
     |> Keyword.merge(opts)
   end
+
   # defp config(opts, key) do
   #   config(opts)
   #   |> Keyword.fetch!(key)

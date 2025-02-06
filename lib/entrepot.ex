@@ -29,10 +29,13 @@ defmodule Entrepot do
       iex> Entrepot.copy(%Locator{id: "file.txt", storage: Disk}, S3)
       {:ok, %Locator{id: "new_id", storage: S3, metadata: %{copied_from: Disk}}}
   """
-  def copy(locator, dest_storage, opts \\ []) 
-  def copy(%Locator{storage: source_storage}, dest_storage, _opts) when source_storage==dest_storage do
-    raise "Use `#{source_storage.clone/3}` when you want to clone a file on the same storage"
+  def copy(locator, dest_storage, opts \\ [])
+
+  def copy(%Locator{storage: source_storage}, dest_storage, _opts)
+      when source_storage == dest_storage do
+    raise "Use `#{source_storage.clone / 3}` when you want to clone a file on the same storage"
   end
+
   def copy(%Locator{id: id} = locator, dest_storage, opts) do
     source_storage = storage!(locator)
 
@@ -40,15 +43,15 @@ defmodule Entrepot do
     |> source_storage.stream(opts)
     |> dest_storage.put(Keyword.put(opts, :name, id))
     |> case do
-          {:ok, id} ->
-              Entrepot.add_metadata(
-                Locator.new!(id: id, storage: dest_storage),
-                %{copied_from: source_storage}
-              )
+      {:ok, id} ->
+        Entrepot.add_metadata(
+          Locator.new!(id: id, storage: dest_storage),
+          %{copied_from: source_storage}
+        )
 
-          error_tuple ->
-            error_tuple
-        end
+      error_tuple ->
+        error_tuple
+    end
   end
 
   @doc """
@@ -118,5 +121,4 @@ defmodule Entrepot do
   end
 
   def storage!(%Locator{storage: module_name}) when is_atom(module_name), do: module_name
-
 end
