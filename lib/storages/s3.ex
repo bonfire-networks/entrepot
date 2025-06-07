@@ -57,10 +57,15 @@ defmodule Entrepot.Storages.S3 do
   @impl Storage
   def url(path, opts \\ []) do
     opts = config(opts)
+    |> Keyword.put_new(:expires_in, 7200) # Set link expiration time (default to 2 hours if not specified)
+    |> IO.inspect(label: "S3 URL Options")
 
     case ExAws.Config.new(:s3, opts)
          |> Client.presigned_url(:get, Keyword.fetch!(opts, :bucket), path, opts) do
-      {:ok, url} -> {:ok, url}
+      {:ok, url} -> 
+        IO.inspect(url, label: "Should work until: #{DateTime.utc_now() |> DateTime.add(3600, :second)}")
+
+        {:ok, url}
       error -> handle_error(error)
     end
   end
