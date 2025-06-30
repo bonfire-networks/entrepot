@@ -56,17 +56,19 @@ defmodule Entrepot.Storages.S3 do
 
   @impl Storage
   def url(path, opts \\ []) do
-    opts = config(opts)
-    
-    # Add CDN support - check if asset_host is configured
-    opts = if Keyword.get(opts, :bucket_as_host) do
-        opts
-        |> Keyword.put(:bucket_as_host, true)
-        |> Keyword.put(:virtual_host, true)
+    opts = prepare_url_opts(opts)
+    |> IO.inspect(label: "S3 URL opts")
+
+    if Keyword.get(opts, :unsigned) do
+      unsigned_url(path, opts)
     else
-        opts
+      signed_url(path, opts)
     end
-    |> Keyword.put_new(:expires_in, 7200)
+  end
+
+  defp signed_url(path, opts) do
+    opts = opts
+    |> Keyword.put_new(:expires_in, 7200) # set a default just in case none is configured
 
     case ExAws.Config.new(:s3, opts)
         |> Client.presigned_url(:get, Keyword.fetch!(opts, :bucket), path, opts) do
@@ -74,6 +76,16 @@ defmodule Entrepot.Storages.S3 do
         {:ok, url}
       error -> handle_error(error)
     end
+  end
+
+  defp unsigned_url(path, opts) do
+    {:ok, prepare_unsigned_url(
+      Keyword.fetch!(opts, :bucket), 
+      path, 
+      ExAws.Config.new(:s3, opts), 
+      Keyword.get(opts, :virtual_host, false), 
+      Keyword.get(opts, :bucket_as_host, false)
+    )}
   end
 
   @impl Storage
@@ -125,4 +137,54 @@ defmodule Entrepot.Storages.S3 do
   defp handle_error({:error, error}) do
     {:error, "S3 storage API error: #{error |> inspect()}"}
   end
+
+  defp prepare_url_opts(opts) do
+    opts = config(opts)
+    
+    # Add CDN support - check if asset_host is configured
+    if Keyword.get(opts, :bucket_as_host) do
+      opts
+        |> Keyword.put(:bucket_as_host, true)
+        |> Keyword.put(:virtual_host, true)
+    else
+        opts
+    end
+  end
+
+  defp prepare_unsigned_url(bucket, object, config, virtual_host, bucket_as_host) do
+    port = sanitized_port_component(config)
+
+    object =
+      if object do
+        ensure_slash(object)
+      else
+        ""
+      end
+
+    case virtual_host do
+      true ->
+        case bucket_as_host do
+          true -> "#{config[:scheme]}#{bucket}#{port}#{object}"
+          false -> "#{config[:scheme]}#{bucket}.#{config[:host]}#{port}#{object}"
+        end
+
+      false ->
+        "#{config[:scheme]}#{config[:host]}#{port}/#{bucket}#{object}"
+    end
+  end
+
+  # If we're using a standard port such as 80 or 443, ignore it
+  @excluded_ports [80, "80", 443, "443"]
+  defp sanitized_port_component(%{port: nil}), do: ""
+  defp sanitized_port_component(%{port: port}) when port in @excluded_ports, do: ""
+  defp sanitized_port_component(%{port: port}), do: ":#{port}"
+  defp sanitized_port_component(_), do: ""
+
+  defp ensure_slash("/" <> _ = path), do: path
+  defp ensure_slash(path), do: "/" <> path
+
+  defp put_accelerate_host(config) do
+    Map.put(config, :host, "s3-accelerate.amazonaws.com")
+  end
+
 end
