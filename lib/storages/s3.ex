@@ -57,7 +57,7 @@ defmodule Entrepot.Storages.S3 do
   @impl Storage
   def url(path, opts \\ []) do
     opts = prepare_url_opts(opts)
-    |> IO.inspect(label: "S3 URL opts")
+    # |> IO.inspect(label: "S3 URL opts")
 
     if Keyword.get(opts, :unsigned) do
       unsigned_url(path, opts)
@@ -93,11 +93,14 @@ defmodule Entrepot.Storages.S3 do
 
   defp do_put(:contents, upload, key, opts) do
     with {:ok, contents} <- Upload.contents(upload) do
+      opts = config(opts)
+      s3_opts = prepare_s3_options(upload, opts)
+      
       Client.put_object(
         config(opts, :bucket),
         key,
         contents,
-        Keyword.get(opts, :s3_options) || opts
+        s3_opts
       )
       |> ex_aws_module().request(opts)
     end
@@ -105,18 +108,27 @@ defmodule Entrepot.Storages.S3 do
 
   defp do_put(_stream, upload, key, opts) do
     with path when is_binary(path) <- Upload.path(upload) do
+      opts = config(opts)
+      s3_opts = prepare_s3_options(upload, opts)
+      
       path
       |> Client.Upload.stream_file()
       |> Client.upload(
         config(opts, :bucket),
         key,
-        Keyword.get(opts, :s3_options) || opts
+        s3_opts
       )
       |> ex_aws_module().request(opts)
     else
       nil ->
         do_put(:contents, upload, key, opts)
     end
+  end
+
+  defp prepare_s3_options(upload, opts) do
+    Keyword.get(opts, :s3_options, opts)
+    |> Keyword.put(:content_type, opts[:content_type])
+    # |> IO.inspect(label: "S3 options")
   end
 
   defp config(opts) do
@@ -186,5 +198,7 @@ defmodule Entrepot.Storages.S3 do
   defp put_accelerate_host(config) do
     Map.put(config, :host, "s3-accelerate.amazonaws.com")
   end
+
+
 
 end
