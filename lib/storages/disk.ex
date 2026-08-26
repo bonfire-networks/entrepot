@@ -82,7 +82,7 @@ defmodule Entrepot.Storages.Disk do
   @impl Storage
   def stream(path, opts \\ []) do
     path = path(path, opts)
-    if File.exists?(path), do: File.stream!(path, [], 512)
+    if File.exists?(path), do: File.stream!(path, 512)
   end
 
   @impl Storage
