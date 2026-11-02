@@ -1,5 +1,6 @@
 defmodule Entrepot.Uploads.URI do
   use ExUnit.Case
+  @moduletag :bypass
   doctest Entrepot
 
   setup do
