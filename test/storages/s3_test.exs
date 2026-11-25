@@ -20,6 +20,22 @@ defmodule Entrepot.Storages.S3Test do
     end
   end
 
+  describe "put/2 with a name" do
+    test "stores the upload under that name, as Disk does" do
+      test_pid = self()
+
+      stub(ExAwsMock, :request, fn %{path: path}, _ ->
+        send(test_pid, {:key, path})
+        {:ok, nil}
+      end)
+
+      assert {:ok, "some/prefix/other.png"} =
+               S3.put(%MockUpload{}, prefix: "some/prefix", name: "other.png", upload_with: :contents)
+
+      assert_received {:key, "some/prefix/other.png"}
+    end
+  end
+
   describe "put/2 with bucket override" do
     test "makes request with override value" do
       stub(ExAwsMock, :request, fn %{bucket: "other"}, _ -> {:ok, nil} end)

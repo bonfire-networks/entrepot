@@ -7,7 +7,8 @@ defmodule Entrepot.Storages.S3 do
 
   @impl Storage
   def put(upload, opts \\ []) do
-    key = Path.join(opts[:prefix] || "/", Upload.name(upload))
+    # `name:` is the stored name, as for Disk, else the upload's own
+    key = Path.join(opts[:prefix] || "/", opts[:name] || Upload.name(upload))
 
     case do_put(opts[:upload_with], upload, key, opts) do
       {:ok, _} -> {:ok, key}
